@@ -4,28 +4,181 @@ import { Database, Zap, Clock, TrendingUp, DollarSign, Cloud, Activity, Filter, 
 
 const StreamBenchmarkPlatform = () => {
   const [selectedTechs, setSelectedTechs] = useState(['Flink', 'Arroyo', 'ksqlDB', 'Proton']);
-  const [selectedScenario, setSelectedScenario] = useState('streaming');
+  const [selectedScenario, setSelectedScenario] = useState('technical');
+  const [selectedTechnicalScenario, setSelectedTechnicalScenario] = useState('real-time-streaming');
+  const [selectedEnterpriseScenario, setSelectedEnterpriseScenario] = useState('Customer 360 & Personalization');
   const [selectedCloud, setSelectedCloud] = useState('all');
   const [viewMode, setViewMode] = useState('performance');
+  const [selectedIndustry, setSelectedIndustry] = useState('all');
 
-  const technologies = [
-    'Flink', 'Arroyo', 'ksqlDB', 'Proton', 'Databricks', 'Azure Data Factory',
-    'Airflow', 'Kafka Streams', 'Spark Streaming', 'Storm', 'Samza',
-    'Pulsar', 'RisingWave', 'Materialize', 'Decodable', 'Azure Stream Analytics',
-    'AWS Kinesis', 'Google Dataflow', 'Hazelcast Jet', 'Beam', 'Bytewax',
-    'Striim', 'TimeScale', 'ClickHouse'
-  ];
+  const technologyCategories = {
+    'Stream Processing Engines': ['Flink', 'Arroyo', 'Kafka Streams', 'Spark Streaming', 'Storm', 'Samza', 'Hazelcast Jet', 'Bytewax'],
+    'SQL Stream Engines': ['ksqlDB', 'Proton', 'RisingWave', 'Materialize', 'Decodable'],
+    'Cloud Managed Streaming': ['Azure Stream Analytics', 'AWS Kinesis', 'Google Dataflow', 'AWS MSK'],
+    'ETL Orchestration': ['Azure Data Factory', 'AWS Glue', 'Google Cloud Data Fusion', 'Airflow', 'Dagster', 'Prefect'],
+    'Unified Analytics Platforms': ['Databricks', 'Snowflake', 'Google BigQuery', 'Azure Synapse Analytics', 'Microsoft Fabric'],
+    'Columnar Storage & Analytics': ['DuckDB', 'ClickHouse', 'Apache Druid', 'Apache Pinot', 'Apache Parquet'],
+    'Query Engines': ['Apache Trino', 'Presto', 'AWS Athena', 'Apache Drill'],
+    'Data Lake Table Formats': ['Apache Iceberg', 'Delta Lake', 'Apache Hudi']
+  };
+
+  const enterpriseNeeds = {
+    'Financial Services': {
+      technologies: ['Flink', 'Kafka Streams', 'ksqlDB', 'Hazelcast Jet', 'Materialize', 'ClickHouse'],
+      requirements: 'Low latency, exactly-once semantics, audit trails',
+      useCases: ['Financial Trading & Risk', 'Fraud Detection & Security']
+    },
+    'E-commerce & Retail': {
+      technologies: ['Kafka Streams', 'Databricks', 'Snowflake', 'AWS Kinesis', 'BigQuery', 'Apache Druid'],
+      requirements: 'High throughput, scalability, real-time inventory',
+      useCases: ['Real-time Inventory Management', 'Customer 360 & Personalization', 'Real-time Recommendations']
+    },
+    'IoT & Manufacturing': {
+      technologies: ['Flink', 'AWS Kinesis', 'Azure Stream Analytics', 'ClickHouse', 'Apache Druid', 'RisingWave'],
+      requirements: 'High volume, out-of-order events, time-series analytics',
+      useCases: ['IoT & Sensor Data Processing', 'Predictive Maintenance']
+    },
+    'Media & Entertainment': {
+      technologies: ['Spark Streaming', 'Databricks', 'Snowflake', 'ClickHouse', 'Apache Pinot', 'BigQuery'],
+      requirements: 'Real-time analytics, audience segmentation, content recommendations',
+      useCases: ['Clickstream & User Analytics', 'Real-time Recommendations', 'Content Engagement Analytics']
+    },
+    'Healthcare & Life Sciences': {
+      technologies: ['Flink', 'Snowflake', 'Azure Synapse Analytics', 'AWS Glue', 'Materialize', 'Databricks'],
+      requirements: 'HIPAA compliance, data privacy, real-time patient monitoring',
+      useCases: ['Patient Monitoring & Healthcare', 'Clinical Decision Support']
+    },
+    'Telecommunications': {
+      technologies: ['Flink', 'Kafka Streams', 'ClickHouse', 'Apache Druid', 'Spark Streaming', 'AWS Kinesis'],
+      requirements: 'Network monitoring, fraud detection, high-volume CDRs',
+      useCases: ['Network Monitoring & Observability', 'Fraud Detection & Security', 'Customer Experience Analytics']
+    },
+    'Gaming': {
+      technologies: ['Flink', 'ksqlDB', 'ClickHouse', 'Apache Druid', 'RisingWave', 'DuckDB'],
+      requirements: 'Player analytics, real-time leaderboards, event tracking',
+      useCases: ['Clickstream & User Analytics', 'Real-time Leaderboards & Gaming', 'Player Behavior Analysis']
+    },
+    'AdTech & Marketing': {
+      technologies: ['Apache Druid', 'ClickHouse', 'Kafka Streams', 'BigQuery', 'Snowflake', 'Apache Pinot'],
+      requirements: 'Real-time bidding, attribution, high QPS analytics',
+      useCases: ['Marketing Attribution & ROI', 'Real-time Bidding', 'Customer 360 & Personalization']
+    },
+    'Logistics & Supply Chain': {
+      technologies: ['Databricks', 'Snowflake', 'AWS Glue', 'Spark Streaming', 'Azure Synapse Analytics', 'Flink'],
+      requirements: 'Route optimization, inventory tracking, predictive analytics',
+      useCases: ['Supply Chain Visibility', 'Real-time Inventory Management', 'Fleet & Asset Tracking']
+    },
+    'Energy & Utilities': {
+      technologies: ['Flink', 'Azure Stream Analytics', 'ClickHouse', 'AWS Kinesis', 'RisingWave', 'Databricks'],
+      requirements: 'Smart grid monitoring, predictive maintenance, IoT sensors',
+      useCases: ['Energy Grid & Smart Meters', 'Predictive Maintenance', 'Demand Forecasting']
+    },
+    'Recruiting & HR Tech': {
+      technologies: ['Snowflake', 'Databricks', 'BigQuery', 'Kafka Streams', 'AWS Glue', 'Azure Data Factory'],
+      requirements: 'Candidate matching, pipeline analytics, engagement tracking',
+      useCases: ['Candidate Pipeline Analytics', 'Talent Matching & Recommendations', 'Recruitment Marketing Analytics']
+    },
+    'Non-Profit & Social Impact': {
+      technologies: ['Snowflake', 'BigQuery', 'DuckDB', 'AWS Glue', 'Databricks', 'Apache Druid'],
+      requirements: 'Donor analytics, campaign tracking, impact measurement, cost-effective',
+      useCases: ['Donor Engagement Analytics', 'Campaign Performance Tracking', 'Impact Measurement & Reporting']
+    }
+  };
+
+  const technologies = Object.values(technologyCategories).flat();
 
   const scenarios = [
-    { id: 'streaming', name: 'Real-time Streaming', icon: Activity },
-    { id: 'batch', name: 'Batch Processing', icon: Database },
-    { id: 'high-volume', name: 'High Volume (>1M/sec)', icon: TrendingUp },
-    { id: 'low-latency', name: 'Ultra-Low Latency (<10ms)', icon: Zap },
-    { id: 'out-of-order', name: 'Out-of-Order Events', icon: Clock },
-    { id: 'large-state', name: 'Large State (>100GB)', icon: Database },
-    { id: 'windowing', name: 'Small Windows (<1min)', icon: Clock },
-    { id: 'joins', name: 'Multiple Joins (3+)', icon: Filter }
+    { id: 'real-time-streaming', name: 'Real-time Streaming (<100ms)', icon: Activity, desc: 'Sub-second latency requirements' },
+    { id: 'near-real-time', name: 'Near Real-time (1-5 sec)', icon: Clock, desc: 'Dashboards and monitoring' },
+    { id: 'micro-batch', name: 'Micro-batch (5-60 sec)', icon: Zap, desc: 'Cost-optimized streaming' },
+    { id: 'batch-processing', name: 'Batch Processing (hourly/daily)', icon: Database, desc: 'Traditional ETL workloads' },
+    { id: 'high-throughput', name: 'High Throughput (>1M events/sec)', icon: TrendingUp, desc: 'Massive scale ingestion' },
+    { id: 'low-latency', name: 'Ultra-Low Latency (<10ms)', icon: Zap, desc: 'Trading, fraud detection' },
+    { id: 'complex-events', name: 'Complex Event Processing', icon: Filter, desc: 'Pattern matching, correlations' },
+    { id: 'stateful-processing', name: 'Stateful Processing (>100GB)', icon: Database, desc: 'Large state management' },
+    { id: 'windowing', name: 'Windowing Operations', icon: Clock, desc: 'Tumbling, sliding, session windows' },
+    { id: 'joins', name: 'Stream Joins (3+ streams)', icon: Filter, desc: 'Multi-stream correlations' },
+    { id: 'out-of-order', name: 'Out-of-Order Events', icon: Activity, desc: 'Late arrival handling' },
+    { id: 'exactly-once', name: 'Exactly-Once Semantics', icon: Database, desc: 'Critical data accuracy' },
+    { id: 'serverless-etl', name: 'Serverless ETL', icon: Cloud, desc: 'Pay-per-use, auto-scaling' },
+    { id: 'analytical-queries', name: 'Analytical Queries', icon: TrendingUp, desc: 'OLAP on streaming data' },
+    { id: 'data-lake', name: 'Data Lake Integration', icon: Database, desc: 'S3, ADLS, GCS integration' }
   ];
+
+  const enterpriseScenarios = {
+    'Customer 360 & Personalization': {
+      description: 'Real-time customer data integration across touchpoints',
+      requirements: 'Stream joins, identity resolution, ML inference',
+      dataVolume: 'Medium-High',
+      latency: '<1 second'
+    },
+    'Fraud Detection & Security': {
+      description: 'Real-time anomaly detection and threat prevention',
+      requirements: 'Complex event processing, pattern matching, low latency',
+      dataVolume: 'High',
+      latency: '<100ms'
+    },
+    'Real-time Inventory Management': {
+      description: 'Cross-channel inventory sync and availability',
+      requirements: 'Exactly-once semantics, high throughput, multiple sources',
+      dataVolume: 'High',
+      latency: '<5 seconds'
+    },
+    'IoT & Sensor Data Processing': {
+      description: 'Manufacturing, smart devices, telemetry processing',
+      requirements: 'Out-of-order events, windowing, time-series aggregation',
+      dataVolume: 'Very High',
+      latency: '<1 second'
+    },
+    'Financial Trading & Risk': {
+      description: 'Market data, order processing, risk calculation',
+      requirements: 'Ultra-low latency, exactly-once, stateful processing',
+      dataVolume: 'Medium-High',
+      latency: '<10ms'
+    },
+    'Clickstream & User Analytics': {
+      description: 'Web/mobile event tracking and behavior analysis',
+      requirements: 'High throughput, sessionization, funnel analysis',
+      dataVolume: 'Very High',
+      latency: '<5 seconds'
+    },
+    'Supply Chain Visibility': {
+      description: 'End-to-end tracking and predictive logistics',
+      requirements: 'Multi-source integration, complex joins, predictions',
+      dataVolume: 'Medium',
+      latency: '<30 seconds'
+    },
+    'Real-time Recommendations': {
+      description: 'Personalized product/content recommendations',
+      requirements: 'ML model serving, feature engineering, A/B testing',
+      dataVolume: 'High',
+      latency: '<500ms'
+    },
+    'Network Monitoring & Observability': {
+      description: 'Infrastructure, application, and network monitoring',
+      requirements: 'High cardinality metrics, log aggregation, alerting',
+      dataVolume: 'Very High',
+      latency: '<5 seconds'
+    },
+    'Patient Monitoring & Healthcare': {
+      description: 'Real-time vital signs and clinical decision support',
+      requirements: 'Reliability, compliance (HIPAA), alert routing',
+      dataVolume: 'Medium',
+      latency: '<1 second'
+    },
+    'Marketing Attribution & ROI': {
+      description: 'Multi-touch attribution and campaign performance',
+      requirements: 'Complex joins, deduplication, lookback windows',
+      dataVolume: 'High',
+      latency: '<1 minute'
+    },
+    'Energy Grid & Smart Meters': {
+      description: 'Power consumption monitoring and demand forecasting',
+      requirements: 'Time-series, predictive analytics, aggregations',
+      dataVolume: 'Very High',
+      latency: '<10 seconds'
+    }
+  };
 
   const clouds = ['AWS', 'Azure', 'GCP'];
 
@@ -102,6 +255,15 @@ const StreamBenchmarkPlatform = () => {
     );
   };
 
+  const selectIndustryStack = (industry) => {
+    if (industry === 'all') {
+      setSelectedIndustry('all');
+      return;
+    }
+    setSelectedIndustry(industry);
+    setSelectedTechs(enterpriseNeeds[industry].technologies);
+  };
+
   const getCloudColor = (cloud) => {
     switch(cloud) {
       case 'AWS': return '#FF9900';
@@ -123,21 +285,80 @@ const StreamBenchmarkPlatform = () => {
         </div>
 
         {/* Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
+            <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Industry
+            </label>
+            <select
+              value={selectedIndustry}
+              onChange={(e) => selectIndustryStack(e.target.value)}
+              className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
+            >
+              <option value="all">All Industries</option>
+              {Object.keys(enterpriseNeeds).map(industry => (
+                <option key={industry} value={industry}>{industry}</option>
+              ))}
+            </select>
+            {selectedIndustry !== 'all' && (
+              <p className="text-xs text-slate-400 mt-1">
+                {enterpriseNeeds[selectedIndustry].requirements}
+              </p>
+            )}
+          </div>
+
           <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
             <label className="block text-sm font-medium mb-2 flex items-center gap-2">
               <Filter className="w-4 h-4" />
-              Scenario
+              Scenario Type
             </label>
             <select
               value={selectedScenario}
               onChange={(e) => setSelectedScenario(e.target.value)}
               className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
             >
-              {scenarios.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
+              <option value="technical">Technical Scenarios</option>
+              <option value="enterprise">Enterprise Use Cases</option>
             </select>
+          </div>
+
+          <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
+            <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+              <Activity className="w-4 h-4" />
+              {selectedScenario === 'technical' ? 'Technical Scenario' : 'Enterprise Use Case'}
+            </label>
+            {selectedScenario === 'technical' ? (
+              <>
+                <select
+                  value={selectedTechnicalScenario}
+                  onChange={(e) => setSelectedTechnicalScenario(e.target.value)}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
+                >
+                  {scenarios.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-400 mt-1">
+                  {scenarios.find(s => s.id === selectedTechnicalScenario)?.desc}
+                </p>
+              </>
+            ) : (
+              <>
+                <select
+                  value={selectedEnterpriseScenario}
+                  onChange={(e) => setSelectedEnterpriseScenario(e.target.value)}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
+                >
+                  {Object.keys(enterpriseScenarios).map(scenario => (
+                    <option key={scenario} value={scenario}>{scenario}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-400 mt-1">
+                  {enterpriseScenarios[selectedEnterpriseScenario].description}
+                </p>
+              </>
+            )}
           </div>
 
           <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
@@ -182,24 +403,62 @@ const StreamBenchmarkPlatform = () => {
           </div>
         </div>
 
+        {/* Enterprise Scenario Details */}
+        {selectedScenario === 'enterprise' && (
+          <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 backdrop-blur rounded-lg p-4 border border-purple-700/50 mb-6">
+            <h3 className="text-lg font-semibold mb-3 text-purple-300">Enterprise Use Case: {selectedEnterpriseScenario}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-slate-400">Requirements:</span>
+                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].requirements}</p>
+              </div>
+              <div>
+                <span className="text-slate-400">Data Volume:</span>
+                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].dataVolume}</p>
+              </div>
+              <div>
+                <span className="text-slate-400">Latency SLA:</span>
+                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].latency}</p>
+              </div>
+              <div>
+                <span className="text-slate-400">Description:</span>
+                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].description}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Technology Selector */}
         <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700 mb-6">
-          <h3 className="text-sm font-medium mb-3">Select Technologies to Compare ({selectedTechs.length} selected)</h3>
-          <div className="flex flex-wrap gap-2">
-            {technologies.map(tech => (
-              <button
-                key={tech}
-                onClick={() => toggleTech(tech)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  selectedTechs.includes(tech)
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
-              >
-                {tech}
-              </button>
-            ))}
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium">Select Technologies to Compare ({selectedTechs.length} selected)</h3>
+            {selectedIndustry !== 'all' && (
+              <span className="text-xs bg-blue-600 px-3 py-1 rounded-full">
+                {selectedIndustry} Stack
+              </span>
+            )}
           </div>
+          
+          {Object.entries(technologyCategories).map(([category, techs]) => (
+            <div key={category} className="mb-4 last:mb-0">
+              <h4 className="text-xs font-semibold text-blue-400 mb-2 uppercase tracking-wider">{category}</h4>
+              <div className="flex flex-wrap gap-2">
+                {techs.map(tech => (
+                  <button
+                    key={tech}
+                    onClick={() => toggleTech(tech)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      selectedTechs.includes(tech)
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
+                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                    }`}
+                  >
+                    {tech}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Metrics Overview */}
