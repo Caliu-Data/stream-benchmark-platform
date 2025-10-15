@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, ZAxis } from 'recharts';
-import { Database, Zap, Clock, TrendingUp, DollarSign, Cloud, Activity, Filter, Download, Settings } from 'lucide-react';
+import { Zap, TrendingUp, DollarSign, Cloud, Activity, Download, Settings } from 'lucide-react';
 
 const StreamBenchmarkPlatform = () => {
   const [selectedTechs, setSelectedTechs] = useState(['Flink', 'Arroyo', 'ksqlDB', 'Proton']);
-  const [selectedScenario, setSelectedScenario] = useState('technical');
-  const [selectedTechnicalScenario, setSelectedTechnicalScenario] = useState('real-time-streaming');
   const [selectedEnterpriseScenario, setSelectedEnterpriseScenario] = useState('Customer 360 & Personalization');
   const [selectedCloud, setSelectedCloud] = useState('all');
   const [viewMode, setViewMode] = useState('performance');
@@ -87,23 +85,6 @@ const StreamBenchmarkPlatform = () => {
 
   const technologies = Object.values(technologyCategories).flat();
 
-  const scenarios = [
-    { id: 'real-time-streaming', name: 'Real-time Streaming (<100ms)', icon: Activity, desc: 'Sub-second latency requirements' },
-    { id: 'near-real-time', name: 'Near Real-time (1-5 sec)', icon: Clock, desc: 'Dashboards and monitoring' },
-    { id: 'micro-batch', name: 'Micro-batch (5-60 sec)', icon: Zap, desc: 'Cost-optimized streaming' },
-    { id: 'batch-processing', name: 'Batch Processing (hourly/daily)', icon: Database, desc: 'Traditional ETL workloads' },
-    { id: 'high-throughput', name: 'High Throughput (>1M events/sec)', icon: TrendingUp, desc: 'Massive scale ingestion' },
-    { id: 'low-latency', name: 'Ultra-Low Latency (<10ms)', icon: Zap, desc: 'Trading, fraud detection' },
-    { id: 'complex-events', name: 'Complex Event Processing', icon: Filter, desc: 'Pattern matching, correlations' },
-    { id: 'stateful-processing', name: 'Stateful Processing (>100GB)', icon: Database, desc: 'Large state management' },
-    { id: 'windowing', name: 'Windowing Operations', icon: Clock, desc: 'Tumbling, sliding, session windows' },
-    { id: 'joins', name: 'Stream Joins (3+ streams)', icon: Filter, desc: 'Multi-stream correlations' },
-    { id: 'out-of-order', name: 'Out-of-Order Events', icon: Activity, desc: 'Late arrival handling' },
-    { id: 'exactly-once', name: 'Exactly-Once Semantics', icon: Database, desc: 'Critical data accuracy' },
-    { id: 'serverless-etl', name: 'Serverless ETL', icon: Cloud, desc: 'Pay-per-use, auto-scaling' },
-    { id: 'analytical-queries', name: 'Analytical Queries', icon: TrendingUp, desc: 'OLAP on streaming data' },
-    { id: 'data-lake', name: 'Data Lake Integration', icon: Database, desc: 'S3, ADLS, GCS integration' }
-  ];
 
   const enterpriseScenarios = {
     'Customer 360 & Personalization': {
@@ -177,6 +158,42 @@ const StreamBenchmarkPlatform = () => {
       requirements: 'Time-series, predictive analytics, aggregations',
       dataVolume: 'Very High',
       latency: '<10 seconds'
+    },
+    'Candidate Pipeline Analytics': {
+      description: 'Real-time tracking of candidate journey and pipeline metrics',
+      requirements: 'Event tracking, funnel analysis, engagement metrics',
+      dataVolume: 'Medium',
+      latency: '<5 seconds'
+    },
+    'Talent Matching & Recommendations': {
+      description: 'AI-powered candidate-job matching and recommendations',
+      requirements: 'ML inference, feature engineering, real-time scoring',
+      dataVolume: 'Medium-High',
+      latency: '<1 second'
+    },
+    'Recruitment Marketing Analytics': {
+      description: 'Campaign performance and candidate acquisition analytics',
+      requirements: 'Attribution modeling, conversion tracking, ROI analysis',
+      dataVolume: 'Medium',
+      latency: '<1 minute'
+    },
+    'Donor Engagement Analytics': {
+      description: 'Real-time donor behavior and engagement tracking',
+      requirements: 'Event tracking, segmentation, engagement scoring',
+      dataVolume: 'Low-Medium',
+      latency: '<5 seconds'
+    },
+    'Campaign Performance Tracking': {
+      description: 'Multi-channel campaign analytics and performance monitoring',
+      requirements: 'Attribution, conversion tracking, cost analysis',
+      dataVolume: 'Medium',
+      latency: '<1 minute'
+    },
+    'Impact Measurement & Reporting': {
+      description: 'Program impact tracking and outcome measurement',
+      requirements: 'Data aggregation, reporting, outcome tracking',
+      dataVolume: 'Low-Medium',
+      latency: '<1 hour'
     }
   };
 
@@ -262,7 +279,35 @@ const StreamBenchmarkPlatform = () => {
     }
     setSelectedIndustry(industry);
     setSelectedTechs(enterpriseNeeds[industry].technologies);
+    
+    // Reset enterprise scenario to first available one for the industry
+    const industryUseCases = enterpriseNeeds[industry]?.useCases || [];
+    if (industryUseCases.length > 0) {
+      setSelectedEnterpriseScenario(industryUseCases[0]);
+    }
   };
+
+  const getFilteredEnterpriseScenarios = () => {
+    if (selectedIndustry === 'all') {
+      return Object.keys(enterpriseScenarios);
+    }
+    
+    // Filter scenarios based on industry use cases
+    const industryUseCases = enterpriseNeeds[selectedIndustry]?.useCases || [];
+    return Object.keys(enterpriseScenarios).filter(scenario => 
+      industryUseCases.includes(scenario)
+    );
+  };
+
+  // Ensure selected scenario is valid for current industry
+  useEffect(() => {
+    const filteredScenarios = getFilteredEnterpriseScenarios();
+    if (!filteredScenarios.includes(selectedEnterpriseScenario)) {
+      if (filteredScenarios.length > 0) {
+        setSelectedEnterpriseScenario(filteredScenarios[0]);
+      }
+    }
+  }, [selectedIndustry, selectedEnterpriseScenario]);
 
   const getCloudColor = (cloud) => {
     switch(cloud) {
@@ -285,7 +330,7 @@ const StreamBenchmarkPlatform = () => {
         </div>
 
         {/* Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
             <label className="block text-sm font-medium mb-2 flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
@@ -308,57 +353,24 @@ const StreamBenchmarkPlatform = () => {
             )}
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
-            <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-              <Filter className="w-4 h-4" />
-              Scenario Type
-            </label>
-            <select
-              value={selectedScenario}
-              onChange={(e) => setSelectedScenario(e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
-            >
-              <option value="technical">Technical Scenarios</option>
-              <option value="enterprise">Enterprise Use Cases</option>
-            </select>
-          </div>
 
           <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
             <label className="block text-sm font-medium mb-2 flex items-center gap-2">
               <Activity className="w-4 h-4" />
-              {selectedScenario === 'technical' ? 'Technical Scenario' : 'Enterprise Use Case'}
+              Enterprise Use Case
             </label>
-            {selectedScenario === 'technical' ? (
-              <>
-                <select
-                  value={selectedTechnicalScenario}
-                  onChange={(e) => setSelectedTechnicalScenario(e.target.value)}
-                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
-                >
-                  {scenarios.map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-slate-400 mt-1">
-                  {scenarios.find(s => s.id === selectedTechnicalScenario)?.desc}
-                </p>
-              </>
-            ) : (
-              <>
-                <select
-                  value={selectedEnterpriseScenario}
-                  onChange={(e) => setSelectedEnterpriseScenario(e.target.value)}
-                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
-                >
-                  {Object.keys(enterpriseScenarios).map(scenario => (
-                    <option key={scenario} value={scenario}>{scenario}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-slate-400 mt-1">
-                  {enterpriseScenarios[selectedEnterpriseScenario].description}
-                </p>
-              </>
-            )}
+            <select
+              value={selectedEnterpriseScenario}
+              onChange={(e) => setSelectedEnterpriseScenario(e.target.value)}
+              className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
+            >
+              {getFilteredEnterpriseScenarios().map(scenario => (
+                <option key={scenario} value={scenario}>{scenario}</option>
+              ))}
+            </select>
+            <p className="text-xs text-slate-400 mt-1">
+              {enterpriseScenarios[selectedEnterpriseScenario].description}
+            </p>
           </div>
 
           <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
@@ -404,29 +416,27 @@ const StreamBenchmarkPlatform = () => {
         </div>
 
         {/* Enterprise Scenario Details */}
-        {selectedScenario === 'enterprise' && (
-          <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 backdrop-blur rounded-lg p-4 border border-purple-700/50 mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-purple-300">Enterprise Use Case: {selectedEnterpriseScenario}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <span className="text-slate-400">Requirements:</span>
-                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].requirements}</p>
-              </div>
-              <div>
-                <span className="text-slate-400">Data Volume:</span>
-                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].dataVolume}</p>
-              </div>
-              <div>
-                <span className="text-slate-400">Latency SLA:</span>
-                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].latency}</p>
-              </div>
-              <div>
-                <span className="text-slate-400">Description:</span>
-                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].description}</p>
-              </div>
+        <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 backdrop-blur rounded-lg p-4 border border-purple-700/50 mb-6">
+          <h3 className="text-lg font-semibold mb-3 text-purple-300">Enterprise Use Case: {selectedEnterpriseScenario}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span className="text-slate-400">Requirements:</span>
+              <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].requirements}</p>
+            </div>
+            <div>
+              <span className="text-slate-400">Data Volume:</span>
+              <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].dataVolume}</p>
+            </div>
+            <div>
+              <span className="text-slate-400">Latency SLA:</span>
+              <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].latency}</p>
+            </div>
+            <div>
+              <span className="text-slate-400">Description:</span>
+              <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].description}</p>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Technology Selector */}
         <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700 mb-6">
@@ -621,7 +631,7 @@ const StreamBenchmarkPlatform = () => {
                   <Cloud className="w-5 h-5" style={{ color: getCloudColor(cloud) }} />
                   {cloud}
                 </h4>
-                <span className="text-xs bg-slate-700 px-2 py-1 rounded">Best for {selectedScenario}</span>
+                <span className="text-xs bg-slate-700 px-2 py-1 rounded">Best for Enterprise</span>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
