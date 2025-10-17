@@ -492,12 +492,17 @@ const StreamBenchmarkPlatform = () => {
         {/* Header */}
         <div className="relative mb-6 md:mb-8">
           <div className="absolute top-4 left-4">
-            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-400 bg-clip-text text-transparent">
+            <a 
+              href="https://caliudata.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-400 bg-clip-text text-transparent hover:from-blue-500 hover:to-cyan-300 transition-all duration-200 cursor-pointer"
+            >
               Caliu
-            </div>
+            </a>
           </div>
           <h1 className="text-2xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent text-center">
-            Multi-Cloud Stream Processing Benchmark
+            Multi-Cloud Data Processing Benchmark
           </h1>
           <p className="text-slate-300 text-sm md:text-base text-center">Compare performance, cost, and efficiency across platforms and cloud providers</p>
         </div>
