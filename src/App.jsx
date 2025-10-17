@@ -487,18 +487,23 @@ const StreamBenchmarkPlatform = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+        <div className="relative mb-6 md:mb-8">
+          <div className="absolute top-4 left-4">
+            <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-400 bg-clip-text text-transparent">
+              Caliu
+            </div>
+          </div>
+          <h1 className="text-2xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent text-center">
             Multi-Cloud Stream Processing Benchmark
           </h1>
-          <p className="text-slate-300">Compare performance, cost, and efficiency across platforms and cloud providers</p>
+          <p className="text-slate-300 text-sm md:text-base text-center">Compare performance, cost, and efficiency across platforms and cloud providers</p>
         </div>
 
         {/* Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
           <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
             <label className="block text-sm font-medium mb-2 flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
@@ -612,9 +617,9 @@ const StreamBenchmarkPlatform = () => {
 
         {/* Scenario Details */}
         {selectedScenario === 'enterprise' && (
-          <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 backdrop-blur rounded-lg p-4 border border-purple-700/50 mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-purple-300">Enterprise Use Case: {selectedEnterpriseScenario}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+          <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 backdrop-blur rounded-lg p-3 md:p-4 border border-purple-700/50 mb-6">
+            <h3 className="text-base md:text-lg font-semibold mb-3 text-purple-300">Enterprise Use Case: {selectedEnterpriseScenario}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 text-xs md:text-sm">
               <div>
                 <span className="text-slate-400">Requirements:</span>
                 <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].requirements}</p>
@@ -636,9 +641,9 @@ const StreamBenchmarkPlatform = () => {
         )}
 
         {selectedScenario === 'technical' && (
-          <div className="bg-gradient-to-r from-blue-900/30 to-cyan-900/30 backdrop-blur rounded-lg p-4 border border-blue-700/50 mb-6">
-            <h3 className="text-lg font-semibold mb-3 text-blue-300">Technical Scenario: {scenarios.find(s => s.id === selectedTechnicalScenario)?.name}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="bg-gradient-to-r from-blue-900/30 to-cyan-900/30 backdrop-blur rounded-lg p-3 md:p-4 border border-blue-700/50 mb-6">
+            <h3 className="text-base md:text-lg font-semibold mb-3 text-blue-300">Technical Scenario: {scenarios.find(s => s.id === selectedTechnicalScenario)?.name}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 text-xs md:text-sm">
               <div>
                 <span className="text-slate-400">Description:</span>
                 <p className="text-white mt-1">{scenarios.find(s => s.id === selectedTechnicalScenario)?.desc}</p>
@@ -652,11 +657,11 @@ const StreamBenchmarkPlatform = () => {
         )}
 
         {/* Technology Selector */}
-        <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium">Select Technologies to Compare ({selectedTechs.length} selected)</h3>
+        <div className="bg-slate-800/50 backdrop-blur rounded-lg p-3 md:p-4 border border-slate-700 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
+            <h3 className="text-xs md:text-sm font-medium">Select Technologies to Compare ({selectedTechs.length} selected)</h3>
             {selectedIndustry !== 'all' && (
-              <span className="text-xs bg-blue-600 px-3 py-1 rounded-full">
+              <span className="text-xs bg-blue-600 px-2 md:px-3 py-1 rounded-full self-start sm:self-auto">
                 {selectedIndustry} Stack
               </span>
             )}
@@ -665,12 +670,12 @@ const StreamBenchmarkPlatform = () => {
           {Object.entries(technologyCategories).map(([category, techs]) => (
             <div key={category} className="mb-4 last:mb-0">
               <h4 className="text-xs font-semibold text-blue-400 mb-2 uppercase tracking-wider">{category}</h4>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 md:gap-2">
                 {techs.map(tech => (
                   <button
                     key={tech}
                     onClick={() => toggleTech(tech)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    className={`px-2 md:px-3 py-1 md:py-1.5 rounded-full text-xs font-medium transition-all ${
                       selectedTechs.includes(tech)
                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
                         : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
@@ -685,54 +690,54 @@ const StreamBenchmarkPlatform = () => {
         </div>
 
         {/* Metrics Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-4 shadow-lg">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+          <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-3 md:p-4 shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="w-8 h-8 opacity-80" />
-              <span className="text-xs bg-white/20 px-2 py-1 rounded">RANGE</span>
+              <TrendingUp className="w-6 md:w-8 h-6 md:h-8 opacity-80" />
+              <span className="text-xs bg-white/20 px-1 md:px-2 py-1 rounded">RANGE</span>
             </div>
-            <div className="text-2xl font-bold mb-1">0.5-5M/sec</div>
-            <div className="text-sm opacity-80">Event Throughput</div>
+            <div className="text-lg md:text-2xl font-bold mb-1">0.5-5M/sec</div>
+            <div className="text-xs md:text-sm opacity-80">Event Throughput</div>
           </div>
 
-          <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-lg p-4 shadow-lg">
+          <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-lg p-3 md:p-4 shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <Zap className="w-8 h-8 opacity-80" />
-              <span className="text-xs bg-white/20 px-2 py-1 rounded">RANGE</span>
+              <Zap className="w-6 md:w-8 h-6 md:h-8 opacity-80" />
+              <span className="text-xs bg-white/20 px-1 md:px-2 py-1 rounded">RANGE</span>
             </div>
-            <div className="text-2xl font-bold mb-1">10-60ms</div>
-            <div className="text-sm opacity-80">Latency Range</div>
+            <div className="text-lg md:text-2xl font-bold mb-1">10-60ms</div>
+            <div className="text-xs md:text-sm opacity-80">Latency Range</div>
           </div>
 
-          <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-lg p-4 shadow-lg">
+          <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-lg p-3 md:p-4 shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-8 h-8 opacity-80" />
-              <span className="text-xs bg-white/20 px-2 py-1 rounded">RANGE</span>
+              <DollarSign className="w-6 md:w-8 h-6 md:h-8 opacity-80" />
+              <span className="text-xs bg-white/20 px-1 md:px-2 py-1 rounded">RANGE</span>
             </div>
-            <div className="text-2xl font-bold mb-1">$185-5,850</div>
-            <div className="text-sm opacity-80">Monthly Cost Range</div>
+            <div className="text-lg md:text-2xl font-bold mb-1">$185-5,850</div>
+            <div className="text-xs md:text-sm opacity-80">Monthly Cost Range</div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg p-4 shadow-lg">
+          <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg p-3 md:p-4 shadow-lg">
             <div className="flex items-center justify-between mb-2">
-              <Activity className="w-8 h-8 opacity-80" />
-              <span className="text-xs bg-white/20 px-2 py-1 rounded">SCENARIOS</span>
+              <Activity className="w-6 md:w-8 h-6 md:h-8 opacity-80" />
+              <span className="text-xs bg-white/20 px-1 md:px-2 py-1 rounded">SCENARIOS</span>
             </div>
-            <div className="text-2xl font-bold mb-1">3</div>
-            <div className="text-sm opacity-80">Real-world Scenarios</div>
+            <div className="text-lg md:text-2xl font-bold mb-1">3</div>
+            <div className="text-xs md:text-sm opacity-80">Real-world Scenarios</div>
           </div>
         </div>
 
         {/* Main Visualization */}
-        <div className="bg-slate-800/50 backdrop-blur rounded-lg p-6 border border-slate-700 mb-6">
+        <div className="bg-slate-800/50 backdrop-blur rounded-lg p-3 md:p-6 border border-slate-700 mb-6">
           {viewMode === 'performance' && (
             <>
-              <h3 className="text-xl font-semibold mb-4">Real-world Performance Scenarios</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <h3 className="text-lg md:text-xl font-semibold mb-4">Real-world Performance Scenarios</h3>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
                 <div>
-                  <h4 className="text-sm font-medium mb-3 text-slate-300">Throughput vs Monthly Cost</h4>
+                  <h4 className="text-xs md:text-sm font-medium mb-3 text-slate-300">Throughput vs Monthly Cost</h4>
                   <ResponsiveContainer width="100%" height={300}>
-                    <ScatterChart>
+                    <ScatterChart margin={{ top: 20, right: 30, left: 60, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis type="number" dataKey="monthlyCost" name="Monthly Cost" unit="$" tick={{ fill: '#9CA3AF' }} label={{ value: 'Monthly Cost ($)', position: 'bottom', fill: '#9CA3AF' }} />
                       <YAxis 
@@ -742,6 +747,7 @@ const StreamBenchmarkPlatform = () => {
                         tick={{ fill: '#9CA3AF' }} 
                         label={{ value: 'Throughput Level', angle: -90, position: 'left', fill: '#9CA3AF' }}
                         domain={[0.5, 3.5]}
+                        ticks={[1, 2, 3]}
                         tickFormatter={(value) => {
                           const labels = { 1: 'Low', 2: 'Medium', 3: 'High' };
                           return labels[value] || '';
@@ -775,17 +781,17 @@ const StreamBenchmarkPlatform = () => {
                     </ScatterChart>
                   </ResponsiveContainer>
                   <div className="mt-2 text-xs text-slate-400">
-                    <div>🔵 <strong>Low:</strong> Azure Stream Analytics - $185/mo</div>
-                    <div>🟢 <strong>Medium:</strong> Kafka Streams - $1,350/mo</div>
+                    <div className="mb-1">🔵 <strong>Low:</strong> Azure Stream Analytics - $185/mo</div>
+                    <div className="mb-1">🟢 <strong>Medium:</strong> Kafka Streams - $1,350/mo</div>
                     <div>🟠 <strong>High:</strong> Apache Flink - $4,700/mo</div>
                   </div>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium mb-3 text-slate-300">Throughput by Latency</h4>
+                  <h4 className="text-xs md:text-sm font-medium mb-3 text-slate-300">Throughput by Latency</h4>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={generateLatencyData()}>
+                    <BarChart data={generateLatencyData()} margin={{ top: 20, right: 30, left: 60, bottom: 80 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="throughput" angle={-45} textAnchor="end" height={100} tick={{ fill: '#9CA3AF', fontSize: 10 }} />
+                      <XAxis dataKey="throughput" angle={-45} textAnchor="end" height={80} tick={{ fill: '#9CA3AF', fontSize: 9 }} />
                       <YAxis tick={{ fill: '#9CA3AF' }} label={{ value: 'Latency (ms)', angle: -90, position: 'left', fill: '#9CA3AF' }} />
                       <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
                       <Legend />
@@ -801,14 +807,14 @@ const StreamBenchmarkPlatform = () => {
 
           {viewMode === 'cost' && (
             <>
-              <h3 className="text-xl font-semibold mb-4">Cost Analysis by Cloud Provider</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <h3 className="text-lg md:text-xl font-semibold mb-4">Cost Analysis by Cloud Provider</h3>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6">
                 <div>
-                  <h4 className="text-sm font-medium mb-3 text-slate-300">Monthly Cost (USD)</h4>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <h4 className="text-xs md:text-sm font-medium mb-3 text-slate-300">Monthly Cost (USD)</h4>
+                  <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={generateCostData()}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} tick={{ fill: '#9CA3AF', fontSize: 11 }} />
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} tick={{ fill: '#9CA3AF', fontSize: 9 }} />
                       <YAxis tick={{ fill: '#9CA3AF' }} />
                       <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
                       <Bar dataKey="monthly" fill="#10b981" />
@@ -816,11 +822,11 @@ const StreamBenchmarkPlatform = () => {
                   </ResponsiveContainer>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium mb-3 text-slate-300">Cost per Million Events (USD)</h4>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <h4 className="text-xs md:text-sm font-medium mb-3 text-slate-300">Cost per Million Events (USD)</h4>
+                  <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={generateCostData()}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} tick={{ fill: '#9CA3AF', fontSize: 11 }} />
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} tick={{ fill: '#9CA3AF', fontSize: 9 }} />
                       <YAxis tick={{ fill: '#9CA3AF' }} />
                       <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
                       <Bar dataKey="perMillion" fill="#f59e0b" />
@@ -833,8 +839,8 @@ const StreamBenchmarkPlatform = () => {
 
           {viewMode === 'radar' && (
             <>
-              <h3 className="text-xl font-semibold mb-4">Multi-Dimensional Comparison</h3>
-              <ResponsiveContainer width="100%" height={500}>
+              <h3 className="text-lg md:text-xl font-semibold mb-4">Multi-Dimensional Comparison</h3>
+              <ResponsiveContainer width="100%" height={400}>
                 <RadarChart data={generateRadarData()}>
                   <PolarGrid stroke="#475569" />
                   <PolarAngleAxis dataKey="metric" tick={{ fill: '#9CA3AF' }} />
@@ -858,8 +864,8 @@ const StreamBenchmarkPlatform = () => {
 
           {viewMode === 'efficiency' && (
             <>
-              <h3 className="text-xl font-semibold mb-4">Cost-Performance Efficiency</h3>
-              <ResponsiveContainer width="100%" height={500}>
+              <h3 className="text-lg md:text-xl font-semibold mb-4">Cost-Performance Efficiency</h3>
+              <ResponsiveContainer width="100%" height={400}>
                 <ScatterChart>
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                   <XAxis type="number" dataKey="cost" name="Monthly Cost" unit="$" tick={{ fill: '#9CA3AF' }} label={{ value: 'Monthly Cost ($)', position: 'bottom', fill: '#9CA3AF' }} />
@@ -870,7 +876,7 @@ const StreamBenchmarkPlatform = () => {
                   <Scatter name="Technologies" data={generateScatterData()} fill="#8b5cf6" />
                 </ScatterChart>
               </ResponsiveContainer>
-              <p className="text-sm text-slate-400 mt-2 text-center">
+              <p className="text-xs md:text-sm text-slate-400 mt-2 text-center">
                 Bubble size represents efficiency score. Upper-left quadrant shows best cost-performance ratio.
               </p>
             </>
