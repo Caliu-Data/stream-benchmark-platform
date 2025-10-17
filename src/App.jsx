@@ -737,7 +737,7 @@ const StreamBenchmarkPlatform = () => {
                 <div>
                   <h4 className="text-xs md:text-sm font-medium mb-3 text-slate-300">Throughput vs Monthly Cost</h4>
                   <ResponsiveContainer width="100%" height={300}>
-                    <ScatterChart margin={{ top: 20, right: 30, left: 60, bottom: 20 }}>
+                    <ScatterChart margin={{ top: 20, right: 30, left: 60, bottom: 80 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis type="number" dataKey="monthlyCost" name="Monthly Cost" unit="$" tick={{ fill: '#9CA3AF' }} label={{ value: 'Monthly Cost ($)', position: 'bottom', fill: '#9CA3AF' }} />
                       <YAxis 
@@ -789,17 +789,21 @@ const StreamBenchmarkPlatform = () => {
                 <div>
                   <h4 className="text-xs md:text-sm font-medium mb-3 text-slate-300">Throughput by Latency</h4>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={generateLatencyData()} margin={{ top: 20, right: 30, left: 60, bottom: 80 }}>
+                    <BarChart data={generateLatencyData()} margin={{ top: 20, right: 30, left: 60, bottom: 50 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="throughput" angle={-45} textAnchor="end" height={80} tick={{ fill: '#9CA3AF', fontSize: 9 }} />
+                      <XAxis dataKey="throughput" angle={-45} textAnchor="end" height={60} tick={{ fill: '#9CA3AF', fontSize: 11 }} />
                       <YAxis tick={{ fill: '#9CA3AF' }} label={{ value: 'Latency (ms)', angle: -90, position: 'left', fill: '#9CA3AF' }} />
                       <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
-                      <Legend />
                       <Bar dataKey="flink" fill="#f59e0b" name="Apache Flink" />
                       <Bar dataKey="kafkaStreams" fill="#10b981" name="Kafka Streams" />
                       <Bar dataKey="azureStreamAnalytics" fill="#3b82f6" name="Azure Stream Analytics" />
                     </BarChart>
                   </ResponsiveContainer>
+                  <div className="mt-2 text-xs text-slate-400">
+                    <div className="mb-1">🟠 <strong>Apache Flink:</strong> High throughput, low latency</div>
+                    <div className="mb-1">🟢 <strong>Kafka Streams:</strong> Medium throughput, medium latency</div>
+                    <div>🔵 <strong>Azure Stream Analytics:</strong> Low throughput, higher latency</div>
+                  </div>
                 </div>
               </div>
             </>
