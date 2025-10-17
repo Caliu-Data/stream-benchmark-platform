@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, ZAxis } from 'recharts';
-import { Zap, TrendingUp, DollarSign, Cloud, Activity, Download, Settings } from 'lucide-react';
+import { Database, Zap, Clock, TrendingUp, DollarSign, Cloud, Activity, Filter, Settings } from 'lucide-react';
 
 const StreamBenchmarkPlatform = () => {
-  const [selectedTechs, setSelectedTechs] = useState(['Flink', 'Arroyo', 'ksqlDB', 'Proton']);
-  const [selectedEnterpriseScenario, setSelectedEnterpriseScenario] = useState('Customer 360 & Personalization');
-  const [selectedCloud, setSelectedCloud] = useState('all');
+  const [selectedTechs, setSelectedTechs] = useState(['Flink', 'Kafka Streams', 'Azure Stream Analytics']);
+  const [selectedScenario, setSelectedScenario] = useState('technical');
+  const [selectedTechnicalScenario, setSelectedTechnicalScenario] = useState('real-time-streaming');
+  const [selectedEnterpriseScenario, setSelectedEnterpriseScenario] = useState('Candidate Pipeline Analytics');
+  const [selectedCloud, setSelectedCloud] = useState('Azure');
   const [viewMode, setViewMode] = useState('performance');
   const [selectedIndustry, setSelectedIndustry] = useState('all');
 
@@ -17,7 +19,8 @@ const StreamBenchmarkPlatform = () => {
     'Unified Analytics Platforms': ['Databricks', 'Snowflake', 'Google BigQuery', 'Azure Synapse Analytics', 'Microsoft Fabric'],
     'Columnar Storage & Analytics': ['DuckDB', 'ClickHouse', 'Apache Druid', 'Apache Pinot', 'Apache Parquet'],
     'Query Engines': ['Apache Trino', 'Presto', 'AWS Athena', 'Apache Drill'],
-    'Data Lake Table Formats': ['Apache Iceberg', 'Delta Lake', 'Apache Hudi']
+    'Data Lake Table Formats': ['Apache Iceberg', 'Delta Lake', 'Apache Hudi'],
+    'Vector Databases': ['Chroma', 'Weaviate', 'Pinecone', 'Qdrant']
   };
 
   const enterpriseNeeds = {
@@ -84,6 +87,24 @@ const StreamBenchmarkPlatform = () => {
   };
 
   const technologies = Object.values(technologyCategories).flat();
+
+  const scenarios = [
+    { id: 'real-time-streaming', name: 'Real-time Streaming (<100ms)', icon: Activity, desc: 'Sub-second latency requirements' },
+    { id: 'near-real-time', name: 'Near Real-time (1-5 sec)', icon: Clock, desc: 'Dashboards and monitoring' },
+    { id: 'micro-batch', name: 'Micro-batch (5-60 sec)', icon: Zap, desc: 'Cost-optimized streaming' },
+    { id: 'batch-processing', name: 'Batch Processing (hourly/daily)', icon: Database, desc: 'Traditional ETL workloads' },
+    { id: 'high-throughput', name: 'High Throughput (>1M events/sec)', icon: TrendingUp, desc: 'Massive scale ingestion' },
+    { id: 'low-latency', name: 'Ultra-Low Latency (<10ms)', icon: Zap, desc: 'Trading, fraud detection' },
+    { id: 'complex-events', name: 'Complex Event Processing', icon: Filter, desc: 'Pattern matching, correlations' },
+    { id: 'stateful-processing', name: 'Stateful Processing (>100GB)', icon: Database, desc: 'Large state management' },
+    { id: 'windowing', name: 'Windowing Operations', icon: Clock, desc: 'Tumbling, sliding, session windows' },
+    { id: 'joins', name: 'Stream Joins (3+ streams)', icon: Filter, desc: 'Multi-stream correlations' },
+    { id: 'out-of-order', name: 'Out-of-Order Events', icon: Activity, desc: 'Late arrival handling' },
+    { id: 'exactly-once', name: 'Exactly-Once Semantics', icon: Database, desc: 'Critical data accuracy' },
+    { id: 'serverless-etl', name: 'Serverless ETL', icon: Cloud, desc: 'Pay-per-use, auto-scaling' },
+    { id: 'analytical-queries', name: 'Analytical Queries', icon: TrendingUp, desc: 'OLAP on streaming data' },
+    { id: 'data-lake', name: 'Data Lake Integration', icon: Database, desc: 'S3, ADLS, GCS integration' }
+  ];
 
 
   const enterpriseScenarios = {
@@ -199,20 +220,68 @@ const StreamBenchmarkPlatform = () => {
 
   const clouds = ['AWS', 'Azure', 'GCP'];
 
-  // Simulated benchmark data
+  // Real-world benchmark data based on throughput scenarios
   const generatePerformanceData = () => {
     const data = [];
-    selectedTechs.slice(0, 8).forEach(tech => {
+    
+    // Define real-world scenarios
+    const scenarios = {
+      'Azure Stream Analytics': {
+        throughput: 0.5, // events/sec
+        monthlyCost: 185, // average of $150-220
+        scenario: 'Low Throughput'
+      },
+      'Kafka Streams': {
+        throughput: 50000, // events/sec
+        monthlyCost: 1350, // average of $1100-1600
+        scenario: 'Medium Throughput'
+      },
+      'Flink': {
+        throughput: 5000000, // events/sec
+        monthlyCost: 4700, // adjusted cost
+        scenario: 'High Throughput'
+      },
+      'Chroma': {
+        throughput: 1000,
+        monthlyCost: 300,
+        scenario: 'Vector DB'
+      },
+      'Weaviate': {
+        throughput: 2000,
+        monthlyCost: 500,
+        scenario: 'Vector DB'
+      },
+      'Pinecone': {
+        throughput: 5000,
+        monthlyCost: 800,
+        scenario: 'Vector DB'
+      },
+      'Qdrant': {
+        throughput: 3000,
+        monthlyCost: 600,
+        scenario: 'Vector DB'
+      }
+    };
+
+    selectedTechs.forEach(tech => {
       clouds.forEach(cloud => {
         if (selectedCloud === 'all' || selectedCloud === cloud) {
+          const scenario = scenarios[tech] || {
+            throughput: Math.random() * 100000 + 1000,
+            monthlyCost: Math.random() * 2000 + 200,
+            scenario: 'Standard'
+          };
+          
           data.push({
             name: `${tech} (${cloud})`,
             tech,
             cloud,
-            throughput: Math.random() * 1000000 + 100000,
-            latency: Math.random() * 100 + 5,
-            cpu: Math.random() * 80 + 20,
-            memory: Math.random() * 70 + 30
+            throughput: scenario.throughput * (cloud === 'AWS' ? 1.1 : cloud === 'Azure' ? 1.0 : 0.9), // Cloud variation
+            monthlyCost: scenario.monthlyCost * (cloud === 'AWS' ? 1.05 : cloud === 'Azure' ? 1.0 : 0.95), // Cloud variation
+            latency: Math.random() * 50 + 10,
+            cpu: Math.random() * 60 + 30,
+            memory: Math.random() * 50 + 40,
+            scenario: scenario.scenario
           });
         }
       });
@@ -222,17 +291,63 @@ const StreamBenchmarkPlatform = () => {
 
   const generateCostData = () => {
     const data = [];
-    selectedTechs.slice(0, 8).forEach(tech => {
+    
+    // Use the same real-world scenarios for cost data
+    const scenarios = {
+      'Azure Stream Analytics': {
+        monthly: 185,
+        hourly: 0.25,
+        perMillion: 370
+      },
+      'Kafka Streams': {
+        monthly: 1350,
+        hourly: 1.85,
+        perMillion: 27
+      },
+      'Flink': {
+        monthly: 4700,
+        hourly: 6.4,
+        perMillion: 0.94
+      },
+      'Chroma': {
+        monthly: 300,
+        hourly: 0.41,
+        perMillion: 300
+      },
+      'Weaviate': {
+        monthly: 500,
+        hourly: 0.68,
+        perMillion: 250
+      },
+      'Pinecone': {
+        monthly: 800,
+        hourly: 1.1,
+        perMillion: 160
+      },
+      'Qdrant': {
+        monthly: 600,
+        hourly: 0.82,
+        perMillion: 200
+      }
+    };
+
+    selectedTechs.forEach(tech => {
       clouds.forEach(cloud => {
         if (selectedCloud === 'all' || selectedCloud === cloud) {
-          const baseMultiplier = cloud === 'AWS' ? 1 : cloud === 'Azure' ? 0.95 : 0.92;
+          const scenario = scenarios[tech] || {
+            monthly: Math.random() * 2000 + 300,
+            hourly: Math.random() * 2 + 0.5,
+            perMillion: Math.random() * 100 + 10
+          };
+          
+          const cloudMultiplier = cloud === 'AWS' ? 1.05 : cloud === 'Azure' ? 1.0 : 0.95;
           data.push({
             name: `${tech} (${cloud})`,
             tech,
             cloud,
-            hourly: (Math.random() * 5 + 0.5) * baseMultiplier,
-            monthly: (Math.random() * 3000 + 500) * baseMultiplier,
-            perMillion: (Math.random() * 2 + 0.1) * baseMultiplier
+            hourly: scenario.hourly * cloudMultiplier,
+            monthly: scenario.monthly * cloudMultiplier,
+            perMillion: scenario.perMillion * cloudMultiplier
           });
         }
       });
@@ -249,6 +364,59 @@ const StreamBenchmarkPlatform = () => {
       });
       return obj;
     });
+  };
+
+  const generateThroughputCostData = () => {
+    return [
+      {
+        throughput: 'Low',
+        throughputValue: 1, // Numeric value for Y positioning
+        monthlyCost: 185,
+        tech: 'Azure Stream Analytics',
+        color: '#3b82f6' // Blue
+      },
+      {
+        throughput: 'Medium', 
+        throughputValue: 2, // Numeric value for Y positioning
+        monthlyCost: 1350,
+        tech: 'Kafka Streams',
+        color: '#10b981' // Green
+      },
+      {
+        throughput: 'High',
+        throughputValue: 3, // Numeric value for Y positioning
+        monthlyCost: 4700,
+        tech: 'Apache Flink',
+        color: '#f59e0b' // Orange
+      }
+    ];
+  };
+
+  const getLowData = () => generateThroughputCostData().filter(d => d.throughput === 'Low');
+  const getMediumData = () => generateThroughputCostData().filter(d => d.throughput === 'Medium');
+  const getHighData = () => generateThroughputCostData().filter(d => d.throughput === 'High');
+
+  const generateLatencyData = () => {
+    return [
+      {
+        throughput: 'Low (~100 evt/s)',
+        flink: 16, // Average of 12-20
+        kafkaStreams: 24, // Average of 18-30
+        azureStreamAnalytics: 28.5 // Average of 22-35
+      },
+      {
+        throughput: 'Medium (~50K evt/s)',
+        flink: 35, // Average of 25-45
+        kafkaStreams: 42.5, // Average of 30-55
+        azureStreamAnalytics: 55 // Average of 40-70
+      },
+      {
+        throughput: 'High (~5M evt/s)',
+        flink: 90, // Average of 60-120
+        kafkaStreams: 135, // Average of 90-180
+        azureStreamAnalytics: 210 // Average of 140-280
+      }
+    ];
   };
 
   const generateScatterData = () => {
@@ -353,24 +521,57 @@ const StreamBenchmarkPlatform = () => {
             )}
           </div>
 
+          <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
+            <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+              <Filter className="w-4 h-4" />
+              Scenario Type
+            </label>
+            <select
+              value={selectedScenario}
+              onChange={(e) => setSelectedScenario(e.target.value)}
+              className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
+            >
+              <option value="technical">Technical Scenarios</option>
+              <option value="enterprise">Enterprise Use Cases</option>
+            </select>
+          </div>
 
           <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
             <label className="block text-sm font-medium mb-2 flex items-center gap-2">
               <Activity className="w-4 h-4" />
-              Enterprise Use Case
+              {selectedScenario === 'technical' ? 'Technical Scenario' : 'Enterprise Use Case'}
             </label>
-            <select
-              value={selectedEnterpriseScenario}
-              onChange={(e) => setSelectedEnterpriseScenario(e.target.value)}
-              className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
-            >
-              {getFilteredEnterpriseScenarios().map(scenario => (
-                <option key={scenario} value={scenario}>{scenario}</option>
-              ))}
-            </select>
-            <p className="text-xs text-slate-400 mt-1">
-              {enterpriseScenarios[selectedEnterpriseScenario].description}
-            </p>
+            {selectedScenario === 'technical' ? (
+              <>
+                <select
+                  value={selectedTechnicalScenario}
+                  onChange={(e) => setSelectedTechnicalScenario(e.target.value)}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
+                >
+                  {scenarios.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-400 mt-1">
+                  {scenarios.find(s => s.id === selectedTechnicalScenario)?.desc}
+                </p>
+              </>
+            ) : (
+              <>
+                <select
+                  value={selectedEnterpriseScenario}
+                  onChange={(e) => setSelectedEnterpriseScenario(e.target.value)}
+                  className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
+                >
+                  {getFilteredEnterpriseScenarios().map(scenario => (
+                    <option key={scenario} value={scenario}>{scenario}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-400 mt-1">
+                  {enterpriseScenarios[selectedEnterpriseScenario].description}
+                </p>
+              </>
+            )}
           </div>
 
           <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
@@ -407,36 +608,48 @@ const StreamBenchmarkPlatform = () => {
             </select>
           </div>
 
-          <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700 flex items-end">
-            <button className="w-full bg-blue-600 hover:bg-blue-700 rounded px-4 py-2 text-sm font-medium flex items-center justify-center gap-2 transition-colors">
-              <Download className="w-4 h-4" />
-              Export Report
-            </button>
-          </div>
         </div>
 
-        {/* Enterprise Scenario Details */}
-        <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 backdrop-blur rounded-lg p-4 border border-purple-700/50 mb-6">
-          <h3 className="text-lg font-semibold mb-3 text-purple-300">Enterprise Use Case: {selectedEnterpriseScenario}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="text-slate-400">Requirements:</span>
-              <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].requirements}</p>
-            </div>
-            <div>
-              <span className="text-slate-400">Data Volume:</span>
-              <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].dataVolume}</p>
-            </div>
-            <div>
-              <span className="text-slate-400">Latency SLA:</span>
-              <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].latency}</p>
-            </div>
-            <div>
-              <span className="text-slate-400">Description:</span>
-              <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].description}</p>
+        {/* Scenario Details */}
+        {selectedScenario === 'enterprise' && (
+          <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 backdrop-blur rounded-lg p-4 border border-purple-700/50 mb-6">
+            <h3 className="text-lg font-semibold mb-3 text-purple-300">Enterprise Use Case: {selectedEnterpriseScenario}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <span className="text-slate-400">Requirements:</span>
+                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].requirements}</p>
+              </div>
+              <div>
+                <span className="text-slate-400">Data Volume:</span>
+                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].dataVolume}</p>
+              </div>
+              <div>
+                <span className="text-slate-400">Latency SLA:</span>
+                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].latency}</p>
+              </div>
+              <div>
+                <span className="text-slate-400">Description:</span>
+                <p className="text-white mt-1">{enterpriseScenarios[selectedEnterpriseScenario].description}</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {selectedScenario === 'technical' && (
+          <div className="bg-gradient-to-r from-blue-900/30 to-cyan-900/30 backdrop-blur rounded-lg p-4 border border-blue-700/50 mb-6">
+            <h3 className="text-lg font-semibold mb-3 text-blue-300">Technical Scenario: {scenarios.find(s => s.id === selectedTechnicalScenario)?.name}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-slate-400">Description:</span>
+                <p className="text-white mt-1">{scenarios.find(s => s.id === selectedTechnicalScenario)?.desc}</p>
+              </div>
+              <div>
+                <span className="text-slate-400">Scenario Type:</span>
+                <p className="text-white mt-1">Technical Performance Benchmark</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Technology Selector */}
         <div className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700 mb-6">
@@ -476,37 +689,37 @@ const StreamBenchmarkPlatform = () => {
           <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-4 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <TrendingUp className="w-8 h-8 opacity-80" />
-              <span className="text-xs bg-white/20 px-2 py-1 rounded">AVG</span>
+              <span className="text-xs bg-white/20 px-2 py-1 rounded">RANGE</span>
             </div>
-            <div className="text-2xl font-bold mb-1">847K/sec</div>
-            <div className="text-sm opacity-80">Avg Throughput</div>
+            <div className="text-2xl font-bold mb-1">0.5-5M/sec</div>
+            <div className="text-sm opacity-80">Event Throughput</div>
           </div>
 
           <div className="bg-gradient-to-br from-cyan-600 to-cyan-700 rounded-lg p-4 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <Zap className="w-8 h-8 opacity-80" />
-              <span className="text-xs bg-white/20 px-2 py-1 rounded">P95</span>
+              <span className="text-xs bg-white/20 px-2 py-1 rounded">RANGE</span>
             </div>
-            <div className="text-2xl font-bold mb-1">42ms</div>
-            <div className="text-sm opacity-80">Avg Latency</div>
+            <div className="text-2xl font-bold mb-1">10-60ms</div>
+            <div className="text-sm opacity-80">Latency Range</div>
           </div>
 
           <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-lg p-4 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <DollarSign className="w-8 h-8 opacity-80" />
-              <span className="text-xs bg-white/20 px-2 py-1 rounded">MONTHLY</span>
+              <span className="text-xs bg-white/20 px-2 py-1 rounded">RANGE</span>
             </div>
-            <div className="text-2xl font-bold mb-1">$2,347</div>
-            <div className="text-sm opacity-80">Avg Cost</div>
+            <div className="text-2xl font-bold mb-1">$185-5,850</div>
+            <div className="text-sm opacity-80">Monthly Cost Range</div>
           </div>
 
           <div className="bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg p-4 shadow-lg">
             <div className="flex items-center justify-between mb-2">
               <Activity className="w-8 h-8 opacity-80" />
-              <span className="text-xs bg-white/20 px-2 py-1 rounded">SCORE</span>
+              <span className="text-xs bg-white/20 px-2 py-1 rounded">SCENARIOS</span>
             </div>
-            <div className="text-2xl font-bold mb-1">87/100</div>
-            <div className="text-sm opacity-80">Efficiency Score</div>
+            <div className="text-2xl font-bold mb-1">3</div>
+            <div className="text-sm opacity-80">Real-world Scenarios</div>
           </div>
         </div>
 
@@ -514,29 +727,71 @@ const StreamBenchmarkPlatform = () => {
         <div className="bg-slate-800/50 backdrop-blur rounded-lg p-6 border border-slate-700 mb-6">
           {viewMode === 'performance' && (
             <>
-              <h3 className="text-xl font-semibold mb-4">Performance Comparison</h3>
+              <h3 className="text-xl font-semibold mb-4">Real-world Performance Scenarios</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="text-sm font-medium mb-3 text-slate-300">Throughput (events/sec)</h4>
+                  <h4 className="text-sm font-medium mb-3 text-slate-300">Throughput vs Monthly Cost</h4>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={generatePerformanceData()}>
+                    <ScatterChart>
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} tick={{ fill: '#9CA3AF', fontSize: 11 }} />
-                      <YAxis tick={{ fill: '#9CA3AF' }} />
+                      <XAxis type="number" dataKey="monthlyCost" name="Monthly Cost" unit="$" tick={{ fill: '#9CA3AF' }} label={{ value: 'Monthly Cost ($)', position: 'bottom', fill: '#9CA3AF' }} />
+                      <YAxis 
+                        type="number" 
+                        dataKey="throughputValue" 
+                        name="Throughput" 
+                        tick={{ fill: '#9CA3AF' }} 
+                        label={{ value: 'Throughput Level', angle: -90, position: 'left', fill: '#9CA3AF' }}
+                        domain={[0.5, 3.5]}
+                        tickFormatter={(value) => {
+                          const labels = { 1: 'Low', 2: 'Medium', 3: 'High' };
+                          return labels[value] || '';
+                        }}
+                      />
                       <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
-                      <Bar dataKey="throughput" fill="#3b82f6" />
-                    </BarChart>
+                      <Scatter 
+                        data={getLowData()}
+                        dataKey="monthlyCost" 
+                        fill="#3b82f6"
+                        shape="circle"
+                        r={8}
+                        name="Low"
+                      />
+                      <Scatter 
+                        data={getMediumData()}
+                        dataKey="monthlyCost" 
+                        fill="#10b981"
+                        shape="circle"
+                        r={8}
+                        name="Medium"
+                      />
+                      <Scatter 
+                        data={getHighData()}
+                        dataKey="monthlyCost" 
+                        fill="#f59e0b"
+                        shape="circle"
+                        r={8}
+                        name="High"
+                      />
+                    </ScatterChart>
                   </ResponsiveContainer>
+                  <div className="mt-2 text-xs text-slate-400">
+                    <div>🔵 <strong>Low:</strong> Azure Stream Analytics - $185/mo</div>
+                    <div>🟢 <strong>Medium:</strong> Kafka Streams - $1,350/mo</div>
+                    <div>🟠 <strong>High:</strong> Apache Flink - $4,700/mo</div>
+                  </div>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium mb-3 text-slate-300">Latency (ms) - Lower is Better</h4>
+                  <h4 className="text-sm font-medium mb-3 text-slate-300">Throughput by Latency</h4>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={generatePerformanceData()}>
+                    <BarChart data={generateLatencyData()}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} tick={{ fill: '#9CA3AF', fontSize: 11 }} />
-                      <YAxis tick={{ fill: '#9CA3AF' }} />
+                      <XAxis dataKey="throughput" angle={-45} textAnchor="end" height={100} tick={{ fill: '#9CA3AF', fontSize: 10 }} />
+                      <YAxis tick={{ fill: '#9CA3AF' }} label={{ value: 'Latency (ms)', angle: -90, position: 'left', fill: '#9CA3AF' }} />
                       <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #475569' }} />
-                      <Bar dataKey="latency" fill="#06b6d4" />
+                      <Legend />
+                      <Bar dataKey="flink" fill="#f59e0b" name="Apache Flink" />
+                      <Bar dataKey="kafkaStreams" fill="#10b981" name="Kafka Streams" />
+                      <Bar dataKey="azureStreamAnalytics" fill="#3b82f6" name="Azure Stream Analytics" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -622,34 +877,6 @@ const StreamBenchmarkPlatform = () => {
           )}
         </div>
 
-        {/* Cloud Provider Breakdown */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {clouds.map(cloud => (
-            <div key={cloud} className="bg-slate-800/50 backdrop-blur rounded-lg p-4 border border-slate-700">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-semibold flex items-center gap-2">
-                  <Cloud className="w-5 h-5" style={{ color: getCloudColor(cloud) }} />
-                  {cloud}
-                </h4>
-                <span className="text-xs bg-slate-700 px-2 py-1 rounded">Best for Enterprise</span>
-              </div>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Avg Latency:</span>
-                  <span className="font-medium">{(Math.random() * 50 + 20).toFixed(1)}ms</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Avg Cost/hr:</span>
-                  <span className="font-medium">${(Math.random() * 3 + 1).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Winner:</span>
-                  <span className="font-medium text-blue-400">{selectedTechs[Math.floor(Math.random() * Math.min(3, selectedTechs.length))]}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
