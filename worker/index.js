@@ -33,7 +33,19 @@ export default {
       });
     }
 
-    // Only allow POST requests
+    // Health check endpoint
+    if (request.method === 'GET') {
+      return new Response(JSON.stringify({ 
+        status: 'ok', 
+        message: 'Worker is running',
+        timestamp: new Date().toISOString()
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', ...securityHeaders },
+      });
+    }
+
+    // Only allow POST requests for form submission
     if (request.method !== 'POST') {
       return new Response(JSON.stringify({ success: false, message: 'Method not allowed' }), {
         status: 405,
@@ -47,14 +59,17 @@ export default {
       // Parse JSON with better error handling
       try {
         const text = await request.text();
-        console.log('Raw request body:', text);
+        console.log('Raw request body length:', text.length);
+        console.log('Raw request body:', text.substring(0, 200)); // First 200 chars
+        console.log('Content-Type:', request.headers.get('Content-Type'));
         data = JSON.parse(text);
       } catch (parseError) {
         console.error('JSON parse error:', parseError.message);
+        console.error('Failed to parse body');
         throw new Error(`Invalid JSON: ${parseError.message}`);
       }
       
-      console.log('Parsed data:', data);
+      console.log('Parsed data successfully');
       
       // Validate required fields
       if (!data.email) {
