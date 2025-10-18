@@ -17,6 +17,8 @@ const StreamBenchmarkPlatform = () => {
   const [selectedUseCases, setSelectedUseCases] = useState([]);
   const [selectedTechnologies, setSelectedTechnologies] = useState([]);
   const [pendingSelection, setPendingSelection] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState(null);
 
   const technologyCategories = {
     'Stream Processing Engines': ['Flink', 'Arroyo', 'Kafka Streams', 'Spark Streaming', 'Storm', 'Samza', 'Hazelcast Jet', 'Bytewax'],
@@ -495,6 +497,48 @@ const StreamBenchmarkPlatform = () => {
     }
   }, [selectedIndustry, selectedEnterpriseScenario]);
 
+  // Track UTM parameters from LinkedIn and other sources
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    const utmData = {
+      source: urlParams.get('utm_source'),        // linkedin
+      medium: urlParams.get('utm_medium'),        // social
+      campaign: urlParams.get('utm_campaign'),    // benchmark_launch
+      content: urlParams.get('utm_content'),      // azure_stream_processing
+      term: urlParams.get('utm_term'),            // logistics_healthtech_energytech
+      timestamp: new Date().toISOString()
+    };
+    
+    // Track LinkedIn post performance
+    if (utmData.source === 'linkedin') {
+      console.log('LinkedIn Campaign Data:', {
+        technologies: utmData.content,            // Technologies mentioned
+        industries: utmData.term,                 // Industries targeted
+        campaign: utmData.campaign
+      });
+      
+      // Send to Google Analytics
+      if (window.gtag) {
+        window.gtag('event', 'linkedin_campaign', {
+          campaign_source: utmData.source,
+          campaign_medium: utmData.medium,
+          campaign_name: utmData.campaign,
+          campaign_content: utmData.content,
+          campaign_term: utmData.term
+        });
+      }
+      
+      // Store in localStorage for session tracking
+      localStorage.setItem('utm_data', JSON.stringify(utmData));
+    }
+    
+    // Track any UTM source
+    if (utmData.source) {
+      console.log('UTM Tracking Data:', utmData);
+    }
+  }, []);
+
   const getCloudColor = (cloud) => {
     switch(cloud) {
       case 'AWS': return '#FF9900';
@@ -589,25 +633,89 @@ const StreamBenchmarkPlatform = () => {
       return;
     }
 
-    // Here you would send the data to your backend
-    const leadData = {
-      email: userEmail,
-      useCases: selectedUseCases,
-      technologies: selectedTechnologies,
-      requestedFeature: pendingSelection,
-      timestamp: new Date().toISOString()
-    };
+    if (!turnstileToken) {
+      alert('Please complete the security verification (Turnstile).');
+      return;
+    }
 
-    console.log('Lead captured:', leadData);
-    
-    // Close popup and reset
-    setShowLeadPopup(false);
-    setUserEmail('');
-    setSelectedUseCases([]);
-    setSelectedTechnologies([]);
-    setPendingSelection(null);
-    
-    alert('Thank you! We\'ll contact you soon with more information.');
+    setIsSubmitting(true);
+
+    try {
+      // Get reCAPTCHA token
+      const recaptchaToken = await new Promise((resolve, reject) => {
+        if (window.grecaptcha) {
+          window.grecaptcha.ready(() => {
+            window.grecaptcha.execute('6LehhuArAAAAAFBchjF4arrm3dq-3WpdFEvz5yV4', { action: 'submit' })
+              .then(resolve)
+              .catch(reject);
+          });
+        } else {
+          reject(new Error('reCAPTCHA not loaded'));
+        }
+      });
+
+      // Get UTM data from localStorage
+      const storedUtmData = localStorage.getItem('utm_data');
+      const utmData = storedUtmData ? JSON.parse(storedUtmData) : null;
+
+      // Prepare lead data
+      const leadData = {
+        email: userEmail,
+        useCases: selectedUseCases,
+        technologies: selectedTechnologies,
+        requestedFeature: pendingSelection,
+        utm: utmData,
+        timestamp: new Date().toISOString(),
+        turnstileToken: turnstileToken,
+        recaptchaToken: recaptchaToken
+      };
+
+      // Send to Cloudflare Worker
+      const workerUrl = import.meta.env.VITE_WORKER_URL || 'YOUR_CLOUDFLARE_WORKER_URL';
+      const response = await fetch(workerUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(leadData),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to submit form');
+      }
+
+      console.log('Lead captured:', leadData);
+      
+      // Send lead capture event to Google Analytics
+      if (window.gtag) {
+        window.gtag('event', 'generate_lead', {
+          event_category: 'Lead Capture',
+          event_label: 'Testing Program Signup',
+          value: selectedTechnologies.length + selectedUseCases.length,
+          technologies: selectedTechnologies.join(','),
+          use_cases: selectedUseCases.join(','),
+          campaign_source: utmData?.source || 'direct',
+          campaign_content: utmData?.content || 'none'
+        });
+      }
+      
+      // Close popup and reset
+      setShowLeadPopup(false);
+      setUserEmail('');
+      setSelectedUseCases([]);
+      setSelectedTechnologies([]);
+      setPendingSelection(null);
+      setTurnstileToken(null);
+      
+      alert('Thank you! We\'ll contact you soon with more information.');
+    } catch (error) {
+      console.error('Error submitting lead:', error);
+      alert(`Error: ${error.message}. Please try again.`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const closePopup = () => {
@@ -616,7 +724,33 @@ const StreamBenchmarkPlatform = () => {
     setSelectedUseCases([]);
     setSelectedTechnologies([]);
     setPendingSelection(null);
+    setTurnstileToken(null);
   };
+
+  // Initialize Turnstile when popup opens
+  useEffect(() => {
+    if (showLeadPopup && window.turnstile) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        const container = document.getElementById('turnstile-container');
+        if (container && !container.hasChildNodes()) {
+          window.turnstile.render('#turnstile-container', {
+            sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+            callback: (token) => {
+              setTurnstileToken(token);
+            },
+            'error-callback': () => {
+              setTurnstileToken(null);
+              alert('Security verification failed. Please try again.');
+            },
+            theme: 'dark',
+          });
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showLeadPopup]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-6">
@@ -1145,18 +1279,34 @@ const StreamBenchmarkPlatform = () => {
                   </p>
                 </div>
 
+                {/* Turnstile CAPTCHA */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2 text-slate-300">
+                    Security Verification *
+                  </label>
+                  <div 
+                    id="turnstile-container" 
+                    className="flex justify-center"
+                  ></div>
+                  <p className="text-xs text-slate-400 mt-2">
+                    Protected by Cloudflare Turnstile and Google reCAPTCHA
+                  </p>
+                </div>
+
                 {/* Submit Button */}
                 <div className="flex gap-3">
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                    disabled={isSubmitting || !turnstileToken}
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Submit & Get Access
+                    {isSubmitting ? 'Submitting...' : 'Submit & Get Access'}
                   </button>
                   <button
                     type="button"
                     onClick={closePopup}
-                    className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                    disabled={isSubmitting}
+                    className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>

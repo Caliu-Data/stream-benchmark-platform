@@ -1,0 +1,14 @@
+name = "caliu-benchmark-worker"
+main = "worker/index.js"
+compatibility_date = "2024-01-01"
+
+# Environment variables (set these via Wrangler CLI or Cloudflare Dashboard)
+# wrangler secret put SENDGRID_API_KEY
+# wrangler secret put TO_EMAIL
+# wrangler secret put FROM_EMAIL
+# wrangler secret put TURNSTILE_SECRET_KEY
+# wrangler secret put RECAPTCHA_SECRET_KEY
+
+[vars]
+# Non-sensitive variables can go here
+
