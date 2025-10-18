@@ -2,8 +2,21 @@ import { sendEmail } from './email.js';
 
 export default {
   async fetch(request, env) {
+    // Get the origin of the request
+    const origin = request.headers.get('Origin');
+    
+    // Allow Cloudflare Pages deployment and production domains
+    const allowedOrigins = [
+      'https://stream-benchmark.pages.dev',
+      'https://benchmark.caliudata.com',
+      'https://app.caliudata.com',
+      'https://caliudata.com'
+    ];
+    
+    const allowOrigin = allowedOrigins.includes(origin) ? origin : 'https://benchmark.caliudata.com';
+    
     const securityHeaders = {
-      'Access-Control-Allow-Origin': '*', // Update this to your domain in production
+      'Access-Control-Allow-Origin': allowOrigin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       'X-Content-Type-Options': 'nosniff',
@@ -29,7 +42,19 @@ export default {
     }
 
     try {
-      const data = await request.json();
+      let data;
+      
+      // Parse JSON with better error handling
+      try {
+        const text = await request.text();
+        console.log('Raw request body:', text);
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError.message);
+        throw new Error(`Invalid JSON: ${parseError.message}`);
+      }
+      
+      console.log('Parsed data:', data);
       
       // Validate required fields
       if (!data.email) {

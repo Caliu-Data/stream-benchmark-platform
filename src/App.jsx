@@ -654,9 +654,17 @@ const StreamBenchmarkPlatform = () => {
         }
       });
 
-      // Get UTM data from localStorage
-      const storedUtmData = localStorage.getItem('utm_data');
-      const utmData = storedUtmData ? JSON.parse(storedUtmData) : null;
+      // Get UTM data from localStorage (with error handling)
+      let utmData = null;
+      try {
+        const storedUtmData = localStorage.getItem('utm_data');
+        if (storedUtmData) {
+          utmData = JSON.parse(storedUtmData);
+        }
+      } catch (e) {
+        console.warn('Failed to parse UTM data:', e);
+        utmData = null;
+      }
 
       // Prepare lead data
       const leadData = {
@@ -671,7 +679,11 @@ const StreamBenchmarkPlatform = () => {
       };
 
       // Send to Cloudflare Worker
-      const workerUrl = import.meta.env.VITE_WORKER_URL || 'YOUR_CLOUDFLARE_WORKER_URL';
+      const workerUrl = import.meta.env.VITE_WORKER_URL || 'https://caliu-benchmark-worker.caliudata.workers.dev';
+      
+      console.log('Sending to worker:', workerUrl);
+      console.log('Lead data:', leadData);
+      
       const response = await fetch(workerUrl, {
         method: 'POST',
         headers: {
@@ -680,7 +692,16 @@ const StreamBenchmarkPlatform = () => {
         body: JSON.stringify(leadData),
       });
 
+      console.log('Worker response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Worker error response:', errorText);
+        throw new Error(`Server error (${response.status}): ${errorText}`);
+      }
+      
       const result = await response.json();
+      console.log('Worker response:', result);
 
       if (!result.success) {
         throw new Error(result.message || 'Failed to submit form');
