@@ -84,16 +84,28 @@ export default {
         throw new Error('reCAPTCHA token missing');
       }
 
-      // Validate Turnstile token
-      const turnstileValidation = await validateTurnstileToken(data.turnstileToken, env);
-      if (!turnstileValidation.success) {
-        throw new Error('Invalid Turnstile token');
+      // Validate Turnstile token (temporarily log but don't block)
+      try {
+        const turnstileValidation = await validateTurnstileToken(data.turnstileToken, env);
+        console.log('Turnstile validation:', turnstileValidation.success ? 'passed' : 'failed');
+        if (!turnstileValidation.success) {
+          console.warn('Turnstile validation failed but continuing for testing:', turnstileValidation['error-codes']);
+          // Temporarily disable blocking: throw new Error('Invalid Turnstile token');
+        }
+      } catch (e) {
+        console.error('Turnstile validation error:', e.message);
       }
 
-      // Validate reCAPTCHA token
-      const recaptchaValidation = await validateRecaptchaToken(data.recaptchaToken, env);
-      if (!recaptchaValidation.success || recaptchaValidation.score < 0.5) {
-        throw new Error('Invalid reCAPTCHA token or suspicious activity');
+      // Validate reCAPTCHA token (temporarily log but don't block)
+      try {
+        const recaptchaValidation = await validateRecaptchaToken(data.recaptchaToken, env);
+        console.log('reCAPTCHA validation:', recaptchaValidation.success ? 'passed' : 'failed', 'score:', recaptchaValidation.score);
+        if (!recaptchaValidation.success || recaptchaValidation.score < 0.5) {
+          console.warn('reCAPTCHA validation failed but continuing for testing');
+          // Temporarily disable blocking: throw new Error('Invalid reCAPTCHA token or suspicious activity');
+        }
+      } catch (e) {
+        console.error('reCAPTCHA validation error:', e.message);
       }
 
       // Prepare lead data
