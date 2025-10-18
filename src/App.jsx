@@ -10,6 +10,13 @@ const StreamBenchmarkPlatform = () => {
   const [selectedCloud, setSelectedCloud] = useState('Azure');
   const [viewMode, setViewMode] = useState('performance');
   const [selectedIndustry, setSelectedIndustry] = useState('all');
+  
+  // Lead capture popup state
+  const [showLeadPopup, setShowLeadPopup] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [selectedUseCases, setSelectedUseCases] = useState([]);
+  const [selectedTechnologies, setSelectedTechnologies] = useState([]);
+  const [pendingSelection, setPendingSelection] = useState(null);
 
   const technologyCategories = {
     'Stream Processing Engines': ['Flink', 'Arroyo', 'Kafka Streams', 'Spark Streaming', 'Storm', 'Samza', 'Hazelcast Jet', 'Bytewax'],
@@ -435,9 +442,20 @@ const StreamBenchmarkPlatform = () => {
   };
 
   const toggleTech = (tech) => {
-    setSelectedTechs(prev =>
-      prev.includes(tech) ? prev.filter(t => t !== tech) : [...prev, tech]
-    );
+    // Check if the tech is already selected (allow deselection)
+    if (selectedTechs.includes(tech)) {
+      setSelectedTechs(prev => prev.filter(t => t !== tech));
+      return;
+    }
+    
+    // Check if it's a default technology
+    if (defaults.technologies.includes(tech)) {
+      setSelectedTechs(prev => [...prev, tech]);
+    } else {
+      // Show popup for non-default technologies
+      setPendingSelection({ type: 'technology', value: tech });
+      setShowLeadPopup(true);
+    }
   };
 
   const selectIndustryStack = (industry) => {
@@ -486,6 +504,120 @@ const StreamBenchmarkPlatform = () => {
     }
   };
 
+  // Default values for each dropdown
+  const defaults = {
+    industry: 'all',
+    scenario: 'technical',
+    technicalScenario: 'real-time-streaming',
+    cloud: 'Azure',
+    viewMode: 'performance',
+    technologies: ['Flink', 'Kafka Streams', 'Azure Stream Analytics']
+  };
+
+  // Handler for dropdown changes with lead capture
+  const handleIndustryChange = (value) => {
+    if (value === defaults.industry) {
+      selectIndustryStack(value);
+    } else {
+      setPendingSelection({ type: 'industry', value });
+      setShowLeadPopup(true);
+    }
+  };
+
+  const handleScenarioChange = (value) => {
+    if (value === defaults.scenario) {
+      setSelectedScenario(value);
+    } else {
+      setPendingSelection({ type: 'scenario', value });
+      setShowLeadPopup(true);
+    }
+  };
+
+  const handleCloudChange = (value) => {
+    if (value === defaults.cloud) {
+      setSelectedCloud(value);
+    } else {
+      setPendingSelection({ type: 'cloud', value });
+      setShowLeadPopup(true);
+    }
+  };
+
+  const handleViewModeChange = (value) => {
+    if (value === defaults.viewMode) {
+      setViewMode(value);
+    } else {
+      setPendingSelection({ type: 'viewMode', value });
+      setShowLeadPopup(true);
+    }
+  };
+
+  const handleTechnicalScenarioChange = (value) => {
+    if (value === defaults.technicalScenario) {
+      setSelectedTechnicalScenario(value);
+    } else {
+      setPendingSelection({ type: 'technicalScenario', value });
+      setShowLeadPopup(true);
+    }
+  };
+
+  const toggleUseCase = (useCase) => {
+    setSelectedUseCases(prev => 
+      prev.includes(useCase) 
+        ? prev.filter(uc => uc !== useCase) 
+        : [...prev, useCase]
+    );
+  };
+
+  const toggleTechnology = (tech) => {
+    setSelectedTechnologies(prev => 
+      prev.includes(tech) 
+        ? prev.filter(t => t !== tech) 
+        : [...prev, tech]
+    );
+  };
+
+  const handleLeadSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!userEmail) {
+      alert('Please provide your email address.');
+      return;
+    }
+
+    if (selectedUseCases.length === 0 && selectedTechnologies.length === 0) {
+      alert('Please select at least one use case or technology.');
+      return;
+    }
+
+    // Here you would send the data to your backend
+    const leadData = {
+      email: userEmail,
+      useCases: selectedUseCases,
+      technologies: selectedTechnologies,
+      requestedFeature: pendingSelection,
+      timestamp: new Date().toISOString()
+    };
+
+    console.log('Lead captured:', leadData);
+    
+    // Close popup and reset
+    setShowLeadPopup(false);
+    setUserEmail('');
+    setSelectedUseCases([]);
+    setSelectedTechnologies([]);
+    setPendingSelection(null);
+    
+    alert('Thank you! We\'ll contact you soon with more information.');
+  };
+
+  const closePopup = () => {
+    setShowLeadPopup(false);
+    setUserEmail('');
+    setSelectedUseCases([]);
+    setSelectedTechnologies([]);
+    setPendingSelection(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
@@ -516,12 +648,12 @@ const StreamBenchmarkPlatform = () => {
             </label>
             <select
               value={selectedIndustry}
-              onChange={(e) => selectIndustryStack(e.target.value)}
+              onChange={(e) => handleIndustryChange(e.target.value)}
               className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
             >
               <option value="all">All Industries</option>
               {Object.keys(enterpriseNeeds).map(industry => (
-                <option key={industry} value={industry}>{industry}</option>
+                <option key={industry} value={industry} className="text-slate-400">{industry}</option>
               ))}
             </select>
             {selectedIndustry !== 'all' && (
@@ -538,11 +670,11 @@ const StreamBenchmarkPlatform = () => {
             </label>
             <select
               value={selectedScenario}
-              onChange={(e) => setSelectedScenario(e.target.value)}
+              onChange={(e) => handleScenarioChange(e.target.value)}
               className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
             >
               <option value="technical">Technical Scenarios</option>
-              <option value="enterprise">Enterprise Use Cases</option>
+              <option value="enterprise" className="text-slate-400">Enterprise Use Cases</option>
             </select>
           </div>
 
@@ -555,11 +687,11 @@ const StreamBenchmarkPlatform = () => {
               <>
                 <select
                   value={selectedTechnicalScenario}
-                  onChange={(e) => setSelectedTechnicalScenario(e.target.value)}
+                  onChange={(e) => handleTechnicalScenarioChange(e.target.value)}
                   className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
                 >
                   {scenarios.map(s => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
+                    <option key={s.id} value={s.id} className={s.id !== defaults.technicalScenario ? 'text-slate-400' : ''}>{s.name}</option>
                   ))}
                 </select>
                 <p className="text-xs text-slate-400 mt-1">
@@ -591,13 +723,13 @@ const StreamBenchmarkPlatform = () => {
             </label>
             <select
               value={selectedCloud}
-              onChange={(e) => setSelectedCloud(e.target.value)}
+              onChange={(e) => handleCloudChange(e.target.value)}
               className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
             >
-              <option value="all">All Providers</option>
-              <option value="AWS">AWS</option>
+              <option value="all" className="text-slate-400">All Providers</option>
+              <option value="AWS" className="text-slate-400">AWS</option>
               <option value="Azure">Azure</option>
-              <option value="GCP">Google Cloud</option>
+              <option value="GCP" className="text-slate-400">Google Cloud</option>
             </select>
           </div>
 
@@ -608,13 +740,13 @@ const StreamBenchmarkPlatform = () => {
             </label>
             <select
               value={viewMode}
-              onChange={(e) => setViewMode(e.target.value)}
+              onChange={(e) => handleViewModeChange(e.target.value)}
               className="w-full bg-slate-700 border border-slate-600 rounded px-3 py-2 text-sm"
             >
               <option value="performance">Performance Metrics</option>
-              <option value="cost">Cost Analysis</option>
-              <option value="radar">Multi-dimensional</option>
-              <option value="efficiency">Cost-Performance</option>
+              <option value="cost" className="text-slate-400">Cost Analysis</option>
+              <option value="radar" className="text-slate-400">Multi-dimensional</option>
+              <option value="efficiency" className="text-slate-400">Cost-Performance</option>
             </select>
           </div>
 
@@ -676,19 +808,30 @@ const StreamBenchmarkPlatform = () => {
             <div key={category} className="mb-4 last:mb-0">
               <h4 className="text-xs font-semibold text-blue-400 mb-2 uppercase tracking-wider">{category}</h4>
               <div className="flex flex-wrap gap-1.5 md:gap-2">
-                {techs.map(tech => (
-                  <button
-                    key={tech}
-                    onClick={() => toggleTech(tech)}
-                    className={`px-2 md:px-3 py-1 md:py-1.5 rounded-full text-xs font-medium transition-all ${
-                      selectedTechs.includes(tech)
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                    }`}
-                  >
-                    {tech}
-                  </button>
-                ))}
+                {techs.map(tech => {
+                  const isDefault = defaults.technologies.includes(tech);
+                  const isSelected = selectedTechs.includes(tech);
+                  
+                  return (
+                    <button
+                      key={tech}
+                      onClick={() => toggleTech(tech)}
+                      className={`px-2 md:px-3 py-1 md:py-1.5 rounded-full text-xs font-medium transition-all ${
+                        isSelected
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
+                          : isDefault
+                          ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          : 'bg-slate-800 text-slate-500 hover:bg-slate-700 border border-slate-600'
+                      }`}
+                      title={!isDefault && !isSelected ? 'Requires email to access' : ''}
+                    >
+                      {tech}
+                      {!isDefault && !isSelected && (
+                        <span className="ml-1 text-[10px]">🔒</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -891,6 +1034,137 @@ const StreamBenchmarkPlatform = () => {
             </>
           )}
         </div>
+
+        {/* Lead Capture Popup */}
+        {showLeadPopup && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-800 rounded-xl p-6 max-w-2xl w-full mx-4 border border-slate-700 shadow-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                  Unlock Full Access
+                </h3>
+                <button 
+                  onClick={closePopup}
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <p className="text-slate-300 mb-6">
+                <span className="font-semibold text-blue-300">Join our testing program!</span> We're developing a tool to simplify multi-cloud data processing deployments. Your feedback will help shape the platform.
+              </p>
+
+              <form onSubmit={handleLeadSubmit}>
+                {/* Email Input */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2 text-slate-300">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    placeholder="your.email@company.com"
+                    required
+                    className="w-full bg-slate-700 border border-slate-600 rounded px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Technologies Selection */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-3 text-slate-300">
+                    Select Technologies You're Interested In
+                  </label>
+                  <div className="max-h-60 overflow-y-auto p-3 bg-slate-900/50 rounded">
+                    {Object.entries(technologyCategories).map(([category, techs]) => (
+                      <div key={category} className="mb-4 last:mb-0">
+                        <h4 className="text-xs font-semibold text-blue-400 mb-2 uppercase tracking-wider">{category}</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {techs.map(tech => {
+                            const isDefault = defaults.technologies.includes(tech);
+                            const isSelected = selectedTechnologies.includes(tech);
+                            
+                            return (
+                              <button
+                                key={tech}
+                                type="button"
+                                onClick={() => toggleTechnology(tech)}
+                                disabled={isDefault}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                  isSelected
+                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
+                                    : isDefault
+                                    ? 'bg-slate-600 text-slate-400 cursor-not-allowed opacity-50'
+                                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600 cursor-pointer'
+                                }`}
+                                title={isDefault ? 'Already available in free tier' : 'Click to select'}
+                              >
+                                {tech}
+                                {isDefault && <span className="ml-1">✓</span>}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2">
+                    Default technologies (Flink, Kafka Streams, Azure Stream Analytics) are already included
+                  </p>
+                </div>
+
+                {/* Use Cases Selection */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-3 text-slate-300">
+                    Select Enterprise Use Cases You're Interested In
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 bg-slate-900/50 rounded">
+                    {Object.keys(enterpriseScenarios).map(useCase => (
+                      <label
+                        key={useCase}
+                        className="flex items-start gap-2 p-2 rounded hover:bg-slate-700/50 cursor-pointer transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedUseCases.includes(useCase)}
+                          onChange={() => toggleUseCase(useCase)}
+                          className="mt-1 w-4 h-4 text-blue-600 bg-slate-700 border-slate-600 rounded focus:ring-blue-500"
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-white">{useCase}</div>
+                          <div className="text-xs text-slate-400">{enterpriseScenarios[useCase].description}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-2">
+                    Select at least one technology or use case to continue
+                  </p>
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    Submit & Get Access
+                  </button>
+                  <button
+                    type="button"
+                    onClick={closePopup}
+                    className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
